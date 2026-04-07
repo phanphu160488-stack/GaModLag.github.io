@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KEY SERVER — GameBooster</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#050a0e;
+    --panel:#0a1520;
+    --border:#0f3a5a;
+    --accent:#00d4ff;
+    --accent2:#ff6b00;
+    --green:#00ff88;
+    --red:#ff3366;
+    --text:#c8e8ff;
+    --dim:#3a6080;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Share Tech Mono',monospace;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  /* Grid background */
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background-image:
+      linear-gradient(var(--border) 1px,transparent 1px),
+      linear-gradient(90deg,var(--border) 1px,transparent 1px);
+    background-size:40px 40px;
+    opacity:.15;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .container{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:24px 16px}
+
+  /* HEADER */
+  header{text-align:center;padding:40px 0 32px;border-bottom:1px solid var(--border);margin-bottom:32px}
+  .logo{
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(22px,5vw,40px);
+    font-weight:900;
+    letter-spacing:6px;
+    color:var(--accent);
+    text-shadow:0 0 30px var(--accent),0 0 60px rgba(0,212,255,.3);
+    animation:pulse 3s ease-in-out infinite;
+  }
+  .logo span{color:var(--accent2)}
+  @keyframes pulse{0%,100%{text-shadow:0 0 20px var(--accent),0 0 50px rgba(0,212,255,.3)}
+    50%{text-shadow:0 0 40px var(--accent),0 0 100px rgba(0,212,255,.5)}}
+  .subtitle{margin-top:8px;color:var(--dim);font-size:13px;letter-spacing:3px}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:24px}
+  .tab{
+    flex:1;padding:12px;text-align:center;font-family:'Orbitron',sans-serif;
+    font-size:12px;letter-spacing:2px;cursor:pointer;
+    border:1px solid var(--border);background:var(--panel);
+    color:var(--dim);transition:.2s;position:relative;overflow:hidden;
+  }
+  .tab.active{border-color:var(--accent);color:var(--accent);
+    box-shadow:0 0 15px rgba(0,212,255,.2) inset,0 0 15px rgba(0,212,255,.1)}
+  .tab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+    background:var(--accent);transform:scaleX(0);transition:.2s}
+  .tab.active::after{transform:scaleX(1)}
+  .tab:hover:not(.active){border-color:var(--dim);color:var(--text)}
+
+  /* PANELS */
+  .panel{display:none;animation:fadeIn .3s ease}
+  .panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* CARD */
+  .card{background:var(--panel);border:1px solid var(--border);padding:24px;margin-bottom:20px;position:relative}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+  .card-title{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:3px;
+    color:var(--accent);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+  .card-title::before{content:'▶';font-size:10px}
+
+  /* FORM */
+  label{display:block;font-size:11px;letter-spacing:2px;color:var(--dim);margin-bottom:6px;margin-top:16px}
+  label:first-of-type{margin-top:0}
+  input,select{
+    width:100%;padding:10px 14px;
+    background:#080f18;border:1px solid var(--border);
+    color:var(--text);font-family:'Share Tech Mono',monospace;font-size:14px;
+    outline:none;transition:.2s;
+  }
+  input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 10px rgba(0,212,255,.2)}
+  select option{background:#0a1520}
+
+  /* DURATION ROW */
+  .duration-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .duration-btn{
+    padding:14px;text-align:center;border:1px solid var(--border);
+    background:#080f18;cursor:pointer;transition:.2s;font-family:'Orbitron',sans-serif;
+    font-size:11px;letter-spacing:2px;color:var(--dim);
+  }
+  .duration-btn.selected{border-color:var(--accent);color:var(--accent);
+    background:rgba(0,212,255,.05);box-shadow:0 0 10px rgba(0,212,255,.15)}
+  .duration-btn.perm.selected{border-color:var(--green);color:var(--green);
+    background:rgba(0,255,136,.05)}
+
+  /* CUSTOM HOURS ROW */
+  .custom-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:8px}
+
+  /* BUTTON */
+  .btn{
+    width:100%;padding:14px;margin-top:20px;
+    background:transparent;border:1px solid var(--accent);
+    color:var(--accent);font-family:'Orbitron',sans-serif;font-size:13px;
+    letter-spacing:3px;cursor:pointer;position:relative;overflow:hidden;transition:.2s;
+  }
+  .btn::before{content:'';position:absolute;inset:0;background:var(--accent);
+    opacity:0;transition:.2s}
+  .btn:hover::before{opacity:.1}
+  .btn:hover{box-shadow:0 0 20px rgba(0,212,255,.3)}
+  .btn:active{transform:scale(.98)}
+  .btn-danger{border-color:var(--red);color:var(--red)}
+  .btn-danger::before{background:var(--red)}
+  .btn-danger:hover{box-shadow:0 0 20px rgba(255,51,102,.3)}
+  .btn-sm{width:auto;padding:6px 14px;margin-top:0;font-size:10px;letter-spacing:2px}
+
+  /* KEY DISPLAY */
+  .key-result{display:none;margin-top:16px;padding:16px;background:#030810;
+    border:1px solid var(--green);word-break:break-all}
+  .key-result.show{display:block;animation:fadeIn .3s ease}
+  .key-val{color:var(--green);font-size:16px;letter-spacing:2px;
+    text-shadow:0 0 10px var(--green)}
+  .key-meta{margin-top:8px;font-size:11px;color:var(--dim)}
+  .copy-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+
+  /* KEY TABLE */
+  .key-table{width:100%;border-collapse:collapse;font-size:12px}
+  .key-table th{
+    padding:10px 12px;text-align:left;font-family:'Orbitron',sans-serif;
+    font-size:10px;letter-spacing:2px;color:var(--dim);
+    border-bottom:1px solid var(--border);background:#030810
+  }
+  .key-table td{padding:10px 12px;border-bottom:1px solid rgba(15,58,90,.5);vertical-align:middle}
+  .key-table tr:hover td{background:rgba(0,212,255,.03)}
+  .badge{display:inline-block;padding:3px 8px;font-size:10px;letter-spacing:1px}
+  .badge-perm{background:rgba(0,255,136,.1);border:1px solid var(--green);color:var(--green)}
+  .badge-24{background:rgba(0,212,255,.1);border:1px solid var(--accent);color:var(--accent)}
+  .badge-48{background:rgba(255,107,0,.1);border:1px solid var(--accent2);color:var(--accent2)}
+  .badge-custom{background:rgba(160,100,255,.1);border:1px solid #a064ff;color:#a064ff}
+  .badge-exp{background:rgba(255,51,102,.1);border:1px solid var(--red);color:var(--red)}
+  .key-short{color:var(--accent);font-size:11px}
+
+  /* STATUS */
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+  .stat{padding:16px;background:var(--panel);border:1px solid var(--border);text-align:center}
+  .stat-num{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:700}
+  .stat-label{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:4px}
+  .n-total{color:var(--accent)}
+  .n-active{color:var(--green)}
+  .n-exp{color:var(--red)}
+
+  /* SEARCH */
+  .search-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:16px}
+
+  /* LOG */
+  #log{max-height:180px;overflow-y:auto;background:#030810;padding:12px;
+    border:1px solid var(--border);font-size:11px;line-height:1.8}
+  .log-item{color:var(--dim)}
+  .log-item span{color:var(--accent)}
+  .log-ok span{color:var(--green)}
+  .log-err span{color:var(--red)}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:40px;color:var(--dim);font-size:12px;letter-spacing:2px}
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:var(--panel)}
+  ::-webkit-scrollbar-thumb{background:var(--border)}
+
+  /* TOAST */
+  #toast{
+    position:fixed;bottom:24px;right:24px;
+    padding:12px 20px;background:var(--panel);border:1px solid var(--accent);
+    color:var(--accent);font-size:12px;letter-spacing:2px;z-index:999;
+    transform:translateY(80px);opacity:0;transition:.3s;pointer-events:none;
+  }
+  #toast.show{transform:none;opacity:1}
+  #toast.err{border-color:var(--red);color:var(--red)}
+
+  @media(max-width:500px){
+    .stat-row{grid-template-columns:1fr 1fr}
+    .duration-row{grid-template-columns:1fr}
+    .tabs{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">GAME<span>BOOSTER</span> KEY</div>
+    <div class="subtitle">// SERVER MANAGEMENT SYSTEM //</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('create')">TẠO KEY</div>
+    <div class="tab" onclick="switchTab('list')">DANH SÁCH KEY</div>
+    <div class="tab" onclick="switchTab('verify')">XÁC MINH KEY</div>
+  </div>
+
+  <!-- ============ TAB TẠO KEY ============ -->
+  <div class="panel active" id="tab-create">
+    <div class="card">
+      <div class="card-title">TẠO KEY MỚI</div>
+
+      <label>LOẠI KEY</label>
+      <div class="duration-row" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="duration-btn perm" data-val="perm" onclick="selectType(this)">VĨNH VIỄN</div>
+        <div class="duration-btn" data-val="24" onclick="selectType(this)">24 GIỜ</div>
+        <div class="duration-btn" data-val="48" onclick="selectType(this)">48 GIỜ</div>
+        <div class="duration-btn" data-val="custom" onclick="selectType(this)">TÙY CHỈNH</div>
+      </div>
+
+      <div id="custom-hours" style="display:none">
+        <label>SỐ GIỜ TÙY CHỈNH</label>
+        <div class="custom-row">
+          <input type="number" id="customH" min="1" max="8760" placeholder="Nhập số giờ..." value="72"/>
+          <span style="color:var(--dim);padding-bottom:10px">GIỜ</span>
+        </div>
+      </div>
+
+      <label>GHI CHÚ (tuỳ chọn)</label>
+      <input type="text" id="keyNote" placeholder="VD: Khách hàng A, Gói premium..."/>
+
+      <label>SỐ LƯỢNG KEY</label>
+      <input type="number" id="keyQty" min="1" max="50" value="1"/>
+
+      <button class="btn" onclick="generateKeys()">⚡ TẠO KEY</button>
+
+      <div class="key-result" id="keyResult">
+        <div class="key-meta">KEY ĐÃ TẠO THÀNH CÔNG:</div>
+        <div id="keyList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">LOG HOẠT ĐỘNG</div>
+      <div id="log"><div class="log-item"><span>[SYSTEM]</span> Server đã khởi động.</div></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB DANH SÁCH ============ -->
+  <div class="panel" id="tab-list">
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num n-total" id="s-total">0</div><div class="stat-label">TỔNG KEY</div></div>
+      <div class="stat"><div class="stat-num n-active" id="s-active">0</div><div class="stat-label">CÒN HẠN</div></div>
+      <div class="stat"><div class="stat-num n-exp" id="s-exp">0</div><div class="stat-label">HẾT HẠN</div></div>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Tìm key..." oninput="renderTable()"/>
+      <button class="btn btn-danger btn-sm" onclick="clearExpired()">XÓA HẾT HẠN</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="key-table">
+        <thead>
+          <tr>
+            <th>KEY</th>
+            <th>LOẠI</th>
+            <th>TẠO LÚC</th>
+            <th>HẾT HẠN</th>
+            <th>GHI CHÚ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="keyTbody"></tbody>
+      </table>
+      <div class="empty" id="emptyMsg" style="display:none">CHƯA CÓ KEY NÀO</div>
+    </div>
+
+    <button class="btn" onclick="exportJSON()" style="margin-top:12px">📥 XUẤT JSON</button>
+  </div>
+
+  <!-- ============ TAB XÁC MINH ============ -->
+  <div class="panel" id="tab-verify">
+    <div class="card">
+      <div class="card-title">XÁC MINH KEY (CLIENT QUERY)</div>
+      <label>NHẬP KEY CẦN KIỂM TRA</label>
+      <input type="text" id="verifyInput" placeholder="Dán key vào đây..."/>
+      <button class="btn" onclick="verifyKey()" style="margin-top:12px">🔍 KIỂM TRA</button>
+
+      <div id="verifyResult" style="margin-top:16px;display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">API ENDPOINT GIẢ LẬP</div>
+      <div style="color:var(--dim);font-size:12px;line-height:2">
+        GET <span style="color:var(--accent)">/api/verify?key=YOURKEY</span><br/>
+        Response: <span style="color:var(--green)">{"valid":true,"type":"24h","expires":"2024-01-01T12:00:00"}</span><br/>
+        <br/>
+        <span style="color:var(--dim)">// Java client gọi endpoint này để xác minh key trước khi vào menu chính</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast">KEY ĐÃ SAO CHÉP!</div>
+
+<script>
+// ============================================================
+// DATA STORE (localStorage)
+// ============================================================
+const STORE = 'gbKeys';
+let keys = JSON.parse(localStorage.getItem(STORE)||'[]');
+
+function save(){localStorage.setItem(STORE,JSON.stringify(keys))}
+
+// ============================================================
+// STATE
+// ============================================================
+let selectedType = 'perm';
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const names=['create','list','verify'];
+    t.classList.toggle('active',names[i]===name);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='list') renderTable();
+}
+
+// ============================================================
+// TYPE SELECT
+// ============================================================
+function selectType(el){
+  document.querySelectorAll('.duration-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = el.dataset.val;
+  document.getElementById('custom-hours').style.display = selectedType==='custom'?'block':'none';
+}
+// default select
+document.querySelector('.duration-btn.perm').classList.add('selected');
+
+// ============================================================
+// GENERATE KEY
+// ============================================================
+function makeKey(){
+  const seg=()=>Math.random().toString(36).substr(2,5).toUpperCase();
+  return `GB-${seg()}-${seg()}-${seg()}-${seg()}`;
+}
+
+function getExpiry(type){
+  if(type==='perm') return null;
+  let h = type==='24'?24:type==='48'?48:parseInt(document.getElementById('customH').value||72);
+  const d=new Date();
+  d.setHours(d.getHours()+h);
+  return d.toISOString();
+}
+
+function generateKeys(){
+  const qty = Math.min(parseInt(document.getElementById('keyQty').value)||1, 50);
+  const note = document.getElementById('keyNote').value.trim();
+  const type = selectedType;
+  const created = new Date().toISOString();
+  const newKeys = [];
+
+  for(let i=0;i<qty;i++){
+    const k={
+      id:Date.now()+i,
+      key:makeKey(),
+      type,
+      created,
+      expires:getExpiry(type),
+      note,
+      used:false
+    };
+    keys.push(k);
+    newKeys.push(k);
+  }
+  save();
+
+  // Show result
+  const res = document.getElementById('keyResult');
+  const list = document.getElementById('keyList');
+  list.innerHTML = newKeys.map(k=>`
+    <div style="margin-top:12px;padding:10px;border:1px solid rgba(0,255,136,.2);background:#020a04">
+      <div class="key-val">${k.key}</div>
+      <div class="key-meta">Loại: ${typeLabel(k.type)} | Tạo: ${fmt(k.created)} | ${k.expires?'Hết: '+fmt(k.expires):'Vĩnh viễn'}</div>
+      <div class="copy-row">
+        <button class="btn btn-sm" style="border-color:var(--green);color:var(--green)" onclick="copy('${k.key}')">SAO CHÉP</button>
+        ${k.note?`<span style="color:var(--dim);font-size:11px">${k.note}</span>`:''}
+      </div>
+    </div>
+  `).join('');
+  res.classList.add('show');
+
+  addLog(`Đã tạo ${qty} key loại ${typeLabel(type)}`,'ok');
+  saveJSON();
+}
+
+// ============================================================
+// TABLE
+// ============================================================
+function renderTable(){
+  const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
+  const now = new Date();
+  let total=0,active=0,exp=0;
+
+  const filtered = keys.filter(k=>
+    k.key.toLowerCase().includes(q)||
+    (k.note||'').toLowerCase().includes(q)
+  );
+
+  total = keys.length;
+  keys.forEach(k=>{
+    if(!k.expires||new Date(k.expires)>now) active++;
+    else exp++;
+  });
+
+  document.getElementById('s-total').textContent=total;
+  document.getElementById('s-active').textContent=active;
+  document.getElementById('s-exp').textContent=exp;
+
+  const tbody=document.getElementById('keyTbody');
+  const empty=document.getElementById('emptyMsg');
+
+  if(!filtered.length){tbody.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+
+  const isExp=k=>k.expires&&new Date(k.expires)<now;
+
+  tbody.innerHTML=filtered.map(k=>`
+    <tr style="${isExp(k)?'opacity:.45':''}">
+      <td><span class="key-short">${k.key}</span></td>
+      <td>${typeBadge(k.type)}</td>
+      <td style="color:var(--dim);font-size:11px">${fmtShort(k.created)}</td>
+      <td style="font-size:11px">${k.expires?(isExp(k)?`<span style="color:var(--red)">HẾT HẠN</span>`:fmtShort(k.expires)):'<span style="color:var(--green)">∞ VĨNH VIỄN</span>'}</td>
+      <td style="color:var(--dim);font-size:11px">${k.note||'—'}</td>
+      <td>
+        <button class="btn btn-sm" onclick="copy('${k.key}')" style="margin-right:4px">COPY</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteKey(${k.id})">XÓA</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deleteKey(id){
+  keys=keys.filter(k=>k.id!==id);
+  save();saveJSON();renderTable();addLog('Đã xóa 1 key','err');
+}
+
+function clearExpired(){
+  const now=new Date();
+  const before=keys.length;
+  keys=keys.filter(k=>!k.expires||new Date(k.expires)>now);
+  save();saveJSON();renderTable();
+  addLog(`Đã xóa ${before-keys.length} key hết hạn`,'err');
+}
+
+// ============================================================
+// VERIFY
+// ============================================================
+function verifyKey(){
+  const input=document.getElementById('verifyInput').value.trim().toUpperCase();
+  const res=document.getElementById('verifyResult');
+  if(!input){res.style.display='none';return}
+
+  const k=keys.find(x=>x.key===input);
+  const now=new Date();
+
+  if(!k){
+    res.style.display='block';
+    res.innerHTML=`<div style="padding:16px;border:1px solid var(--red);color:var(--red)">
+      ❌ KEY KHÔNG TỒN TẠI TRONG HỆ THỐNG
+    </div>`;
+    addLog(`Xác minh thất bại: ${input}`,'err');
+    return;
+  }
+
+  const expired=k.expires&&new Date(k.expires)<now;
+  if(expired){
+    res.style.display='block';
+    res.innerHTML=`<div style="padding:16px;border:1px solid var(--red);color:var(--red)">
+      ⏰ KEY ĐÃ HẾT HẠN<br/><span style="font-size:11px;color:var(--dim)">Hết hạn lúc: ${fmt(k.expires)}</span>
+    </div>`;
+    return;
+  }
+
+  const json={valid:true,type:k.type,expires:k.expires||"permanent",note:k.note||""};
+  res.style.display='block';
+  res.innerHTML=`<div style="padding:16px;border:1px solid var(--green)">
+    <div style="color:var(--green);margin-bottom:8px">✅ KEY HỢP LỆ — ĐĂNG NHẬP THÀNH CÔNG</div>
+    <div style="font-size:11px;color:var(--dim);line-height:2">
+      Key: <span style="color:var(--accent)">${k.key}</span><br/>
+      Loại: ${typeLabel(k.type)}<br/>
+      ${k.expires?'Hết hạn: '+fmt(k.expires):'Hiệu lực: Vĩnh viễn'}<br/>
+      ${k.note?'Ghi chú: '+k.note:''}
+    </div>
+    <div style="margin-top:10px;padding:8px;background:#020a04;font-size:11px;color:var(--green)">
+      JSON RESPONSE: ${JSON.stringify(json)}
+    </div>
+  </div>`;
+  addLog(`Xác minh key: ${input} — THÀNH CÔNG`,'ok');
+}
+
+// ============================================================
+// JSON SAVE (giả lập server lưu file)
+// ============================================================
+function saveJSON(){
+  // In real server, write to keys.json. Here we keep in localStorage.
+  // Exported via exportJSON()
+}
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(keys,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='keys.json';
+  a.click();
+  addLog('Đã xuất keys.json','ok');
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function typeLabel(t){
+  return t==='perm'?'Vĩnh viễn':t==='24'?'24 giờ':t==='48'?'48 giờ':`Tùy chỉnh`;
+}
+function typeBadge(t){
+  if(t==='perm') return '<span class="badge badge-perm">∞ PERM</span>';
+  if(t==='24')   return '<span class="badge badge-24">24H</span>';
+  if(t==='48')   return '<span class="badge badge-48">48H</span>';
+  return '<span class="badge badge-custom">CUSTOM</span>';
+}
+function fmt(iso){if(!iso)return'∞';const d=new Date(iso);return d.toLocaleString('vi-VN')}
+function fmtShort(iso){if(!iso)return'∞';const d=new Date(iso);return d.toLocaleDateString('vi-VN')+' '+d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}
+
+function copy(text){
+  navigator.clipboard.writeText(text).then(()=>{
+    const t=document.getElementById('toast');
+    t.classList.remove('err');
+    t.textContent='✅ KEY ĐÃ SAO CHÉP!';
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2000);
+  });
+}
+
+function addLog(msg,type=''){
+  const log=document.getElementById('log');
+  const time=new Date().toLocaleTimeString('vi-VN');
+  const cls=type==='ok'?'log-item log-ok':type==='err'?'log-item log-err':'log-item';
+  const icon=type==='ok'?'✓':type==='err'?'✗':'▷';
+  log.innerHTML=`<div class="${cls}"><span>[${time}] ${icon}</span> ${msg}</div>`+log.innerHTML;
+}
+
+renderTable();
+</script>
+</body>
+</html>
